@@ -7,13 +7,14 @@ const PORT = process.env.PORT || 3000;
 
 
 connectDB();
-app.use(express.json());
 
-app.use('/api/contacts',require('./routes/contactRoutes'));
-app.use(errorHandler)
+app.use(express.json());
+app.use('/api/contacts', require('./routes/contactRoutes'));
+app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`Server is running on Port ${PORT}`);
 });
+
 
 
 // app.get("/api/contacts", (req, res) => {

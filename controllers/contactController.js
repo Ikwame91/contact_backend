@@ -1,5 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Contact = require("../models/contactModel");
+const mongoose = require("mongoose");
+
 //asynchandler is a wrapppre function(or middleware) that simplifies error handling
 //for async function in Expresss. it catches errors thrown inside the async function and passed them
 //to Express's error-handling middleware
@@ -16,7 +18,12 @@ const getContacts = asyncHandler(async (req, res) => {
 //@route GET /api/contact/:id
 //@access Public
 const getContact = asyncHandler(async (req, res) => {
-  res.status(200).json({ message: `Get contact for ${req.params.id}` });
+  const contact = await Contact.findById(req.params.id);
+  if (!contact) {
+    res.status(404);
+    throw new Error("Contact not found");
+  }
+  res.status(200).json(contact);
 });
 
 //@desc Post contact
@@ -29,7 +36,6 @@ const createContact = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Please enter all required fields");
   }
-
   //in the ES6 if the key and value are the same you just repeat the same thing
   const contact = await Contact.create({
     name,
@@ -37,14 +43,25 @@ const createContact = asyncHandler(async (req, res) => {
     phone,
   });
 
-  res.status(200).json(contact);
+  res.status(201).json(contact);
 });
 
 //@desc Update contacts
 //@route Post /api/contacts/:id
 //@access Public
 const updateContact = asyncHandler(async (req, res) => {
-  res.status(200).json({ message: `update contact for ${req.params.id}` });
+  const contact = await Contact.findById(req.params.id);
+  if (!contact) {
+    res.status(404);
+    throw new Error("Contact not found");
+  }
+  const updateContact = await Contact.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  );
+
+  res.status(200).json(updateContact);
 });
 
 //@desc Delete contact
