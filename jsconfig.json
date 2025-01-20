@@ -2,8 +2,10 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",
-    "checkJs": true
+    "checkJs": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false
+
   },
   "exclude": ["node_modules"]
 }
-
