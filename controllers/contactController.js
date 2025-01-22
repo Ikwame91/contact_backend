@@ -8,15 +8,15 @@ const mongoose = require("mongoose");
 
 //@desc Get all contacts
 //@route Get /api/contacts
-//@access Public
+//@access Private
 const getContacts = asyncHandler(async (req, res) => {
-  const contacts = await Contact.find();
+  const contacts = await Contact.find({user_id:req.user.id});
   res.status(200).json(contacts);
 });
 
 //@desc Get contact
 //@route GET /api/contact/:id
-//@access Public
+//@access Private
 const getContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
   if (!contact) {
@@ -28,7 +28,7 @@ const getContact = asyncHandler(async (req, res) => {
 
 //@desc Post contact
 //@route Post /api/contact/:id
-//@access Public
+//@access Private
 const createContact = asyncHandler(async (req, res) => {
   console.log("The req body is ", req.body);
   const { name, email, phone } = req.body;
@@ -48,7 +48,7 @@ const createContact = asyncHandler(async (req, res) => {
 
 //@desc Update contacts
 //@route Post /api/contacts/:id
-//@access Public
+//@access Private
 const updateContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
   if (!contact) {
@@ -66,7 +66,7 @@ const updateContact = asyncHandler(async (req, res) => {
 
 //@desc Delete contact
 //@route DELETE /api/contact/:id
-//@access Public
+//@access Private
 const deleteContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
   if (!contact) {
