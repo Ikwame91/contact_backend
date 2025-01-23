@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 //@route Get /api/contacts
 //@access Private
 const getContacts = asyncHandler(async (req, res) => {
-  const contacts = await Contact.find({user_id:req.user.id});
+  const contacts = await Contact.find({ user_id: req.user.id });
   res.status(200).json(contacts);
 });
 
@@ -41,6 +41,7 @@ const createContact = asyncHandler(async (req, res) => {
     name,
     email,
     phone,
+    user_id: req.user.id,
   });
 
   res.status(201).json(contact);
@@ -54,6 +55,11 @@ const updateContact = asyncHandler(async (req, res) => {
   if (!contact) {
     res.status(404);
     throw new Error("Contact not found");
+  }
+
+  if (contact.user_id.toString() !== req.user.id){
+    res.status(403);
+    throw new Error("User doesn't have permission to update other users contacts")
   }
   const updateContact = await Contact.findByIdAndUpdate(
     req.params.id,
@@ -72,7 +78,12 @@ const deleteContact = asyncHandler(async (req, res) => {
   if (!contact) {
     res.status(404);
   }
-  await contact.deleteOne();
+
+  if (contact.user_id.toString() !== req.user.id){
+    res.status(403);
+    throw new Error("User doesn't have permission to delete other users contacts")
+  }
+  await contact.deleteOne({_id:req.params.id});
   res.status(200).json(contact);
 });
 
