@@ -2,6 +2,65 @@
 
 A RESTful API backend service that allows users to manage their personal contacts. Users can register, login, and perform CRUD operations (Create, Read, Update, Delete) on their contacts securely.
 
+## Topics Covered
+
+This project was built to practice and demonstrate the following backend development concepts:
+
+### 1. RESTful API Design
+- Designing clean, resource-based URL structures (`/api/users`, `/api/contacts/:id`)
+- Using correct HTTP verbs: `GET`, `POST`, `PUT`, `DELETE`
+- Returning meaningful HTTP status codes (200, 201, 400, 401, 403, 404, 500)
+
+### 2. Node.js & Express.js
+- Setting up an Express server with `app.listen`
+- Organising code into **routes**, **controllers**, **models**, and **middleware** (MVC-style architecture)
+- Using `express.json()` middleware to parse incoming request bodies
+- Handling asynchronous route handlers with `express-async-handler`
+
+### 3. MongoDB & Mongoose
+- Connecting to a MongoDB database using Mongoose
+- Defining **schemas** and **models** for `User` and `Contact` collections
+- Performing CRUD operations with Mongoose methods (`find`, `create`, `findById`, `findByIdAndUpdate`, `deleteOne`)
+- Using Mongoose `ObjectId` references to link documents across collections (`user_id` on contacts)
+- Leveraging automatic `timestamps` (createdAt / updatedAt) on schemas
+
+### 4. User Authentication with JWT
+- Registering users and securely storing hashed passwords
+- Logging in users and issuing signed **JSON Web Tokens (JWT)**
+- Setting token expiry (`expiresIn: "15m"`)
+- Verifying tokens on protected routes using a custom `validateToken` middleware
+- Extracting user identity from the decoded token payload
+
+### 5. Password Security with bcrypt
+- Hashing passwords before saving to the database (`bcrypt.hash`)
+- Comparing plain-text passwords to stored hashes on login (`bcrypt.compare`)
+- Using salt rounds to increase hash strength
+
+### 6. Middleware
+- Writing custom **authentication middleware** to protect private routes
+- Writing a global **error-handling middleware** that formats errors by HTTP status code
+- Applying middleware selectively (public vs. protected routes)
+
+### 7. Environment Variables & Configuration
+- Using `dotenv` to load secrets from a `.env` file
+- Keeping sensitive values (database URI, JWT secret, port) out of source control via `.gitignore`
+
+### 8. Input Validation & Error Handling
+- Validating required request fields and returning `400` errors with descriptive messages
+- Handling "not found" (404) and "forbidden" (403) cases consistently
+- Centralising error responses through a single error-handler middleware
+
+### 9. Authorization & Data Isolation
+- Associating each contact with the logged-in user's `_id`
+- Verifying ownership before allowing updates or deletes (preventing users from modifying other users' data)
+
+### 10. Project Structure & Tooling
+- Organising a Node.js project with separate `config/`, `controllers/`, `middleware/`, `models/`, and `routes/` directories
+- Using **nodemon** for automatic server restarts during development
+- Configuring `jsconfig.json` for improved IDE IntelliSense support
+
+---
+
 ## Features
 
 - User Authentication & Authorization
