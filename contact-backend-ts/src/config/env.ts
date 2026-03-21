@@ -13,6 +13,11 @@ const getEnvConfig = (): EnvConfig => {
   if (!PORT || !MONGODB_URI || !JWT_SECRET) {
     throw new Error("One or more required environment variables are not set");
   }
+
+  const parsedPort = Number(PORT);
+  if(!Number.isInteger(parsedPort)|| parsedPort<=0 || parsedPort > 65535){
+    throw new Error("Invalid PORT number. It must be an integer between 1 and 65535.");
+  }
   return {
     PORT,
     MONGODB_URI,

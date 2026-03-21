@@ -16,4 +16,4 @@ app.listen(env.PORT,()=>{
         
     }}
 
-    startServer();
+ void   startServer();

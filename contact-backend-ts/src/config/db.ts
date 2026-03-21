@@ -3,8 +3,8 @@ import env from "./env.js";
 
 const connectDB = async (): Promise<void> => {
   try {
-    const dbURI = process.env.MONGODB_URI as string;
-    await mongoose.connect(dbURI);
+    
+    await mongoose.connect(env.MONGODB_URI );
     console.log(env.MONGODB_URI)
   } catch (err: unknown) {
     if(err instanceof Error){
