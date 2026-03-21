@@ -10,7 +10,7 @@
     "build:watch": "tsc -w -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "start": "node dist/server.js",
-    "dev": "nodemon dist/server.js"
+    "dev": "tsx watch src/server.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -23,6 +23,7 @@
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
     "nodemon": "^3.1.9",
+    "tsx": "^4.21.0",
     "typescript": "^5.5.4"
   },
   "keywords": [],

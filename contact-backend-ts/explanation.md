@@ -1,12 +1,14 @@
-# Contact Backend TS — Architecture Explanation
+# Contact Backend TS — Explanation (Merged)
 
-This document explains how the current TypeScript backend is wired, why each file exists, and how requests flow through the system.
+This document keeps both the original architecture notes and recent implementation updates.
 
 ---
 
+## A) Original architecture notes (preserved)
+
 ## 1) High-level picture
 
-The project is organized around a simple startup pipeline and middleware-driven request handling:
+The project is organized around a startup pipeline and middleware-driven request handling:
 
 ```mermaid
 flowchart TD
@@ -23,84 +25,20 @@ flowchart TD
     G --> J[express.d.ts type augmentation: req.user]
 ```
 
-**Key idea:** `server.ts` bootstraps the app; `app.ts` defines HTTP behavior; middleware creates boundaries for security and error handling.
-
----
+Key idea: `server.ts` bootstraps the app; `app.ts` defines HTTP behavior; middleware creates boundaries for security and error handling.
 
 ## 2) File-by-file purpose and importance
 
-## `src/server.ts` (Startup orchestrator)
-- Calls DB connection first.
-- Starts HTTP server only after DB succeeds.
-- Handles fatal startup errors and exits process.
+- `src/server.ts`: startup orchestrator (DB first, then listen, fail-fast on startup errors)
+- `src/app.ts`: composition root (JSON parser, routes, error middleware)
+- `src/config/env.ts`: runtime configuration boundary and validation
+- `src/config/db.ts`: MongoDB connection boundary
+- `src/middleware/auth_middleware.ts`: authentication gate (`Bearer` token, JWT verification)
+- `src/middleware/errorhandler.ts`: global error normalization
+- `src/types/express.d.ts`: Request augmentation (`req.user`)
+- `src/constants/constants.ts`: shared literals (status codes/messages)
 
-**Why important:** prevents the app from serving requests while dependencies are unavailable.
-
----
-
-## `src/app.ts` (Express composition root)
-- Creates Express app instance.
-- Registers JSON parser.
-- Declares health route.
-- Registers error middleware last.
-
-**Why important:** this is where middleware order is controlled. In Express, order is behavior.
-
----
-
-## `src/config/env.ts` (Runtime configuration boundary)
-- Loads `.env` values using `dotenv`.
-- Validates required env variables.
-- Exports one typed config object.
-
-**Why important:** centralizes config validation so other files do not touch `process.env` directly.
-
----
-
-## `src/config/db.ts` (Database boundary)
-- Connects Mongoose to MongoDB.
-- Reports connection errors.
-- Should fail fast on unrecoverable startup errors.
-
-**Why important:** isolates DB lifecycle concerns from HTTP route logic.
-
----
-
-## `src/middleware/auth_middleware.ts` (Authentication gate)
-- Reads `Authorization` header (`Bearer <token>`).
-- Verifies JWT.
-- Narrows payload type and attaches `req.user`.
-- Blocks unauthorized requests.
-
-**Why important:** creates trust boundary between external input and internal route access.
-
----
-
-## `src/middleware/errorhandler.ts` (Global error response)
-- Captures unhandled route/middleware errors.
-- Normalizes response shape.
-- Prevents leaking raw failures to clients.
-
-**Why important:** gives consistent client error contracts and centralizes logging behavior.
-
----
-
-## `src/types/express.d.ts` (Express Request augmentation)
-- Extends `Express.Request` with optional `user`.
-- Allows type-safe `req.user` usage across middleware/controllers.
-
-**Why important:** avoids repeated unsafe casts and keeps auth context type-safe.
-
----
-
-## `src/constants/constants.ts` (Shared literals)
-- Central status codes and error message constants.
-
-**Why important:** avoids magic numbers/strings and keeps response semantics consistent.
-
----
-
-## 3) Startup sequence diagram
+## 3) Startup sequence
 
 ```mermaid
 sequenceDiagram
@@ -121,24 +59,22 @@ sequenceDiagram
     end
 ```
 
----
-
-## 4) Protected request flow diagram
+## 4) Protected request flow
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant App as Express app
     participant Auth as auth_middleware.ts
-    participant Ctrl as Controller
+    participant Route as route handler
     participant Err as errorhandler.ts
 
     Client->>App: HTTP request with Authorization header
     App->>Auth: Run auth middleware
     alt token valid + payload has id
         Auth->>Auth: req.user = { id }
-        Auth->>Ctrl: next()
-        Ctrl-->>Client: success response
+        Auth->>Route: next()
+        Route-->>Client: success response
     else token missing/invalid
         Auth-->>Client: 401 Unauthorized
     end
@@ -147,36 +83,21 @@ sequenceDiagram
     Err-->>Client: normalized error JSON
 ```
 
----
-
-## 5) Why middleware order matters
+## 5) Middleware order reminder
 
 Express executes middleware top-to-bottom:
 1. Parse body (`express.json()`)
 2. Route handlers / route-level middleware
-3. Error middleware (`errorhandler.ts`) **must be last**
+3. Error middleware (`errorhandler.ts`) last
 
-If error middleware is registered too early, route errors can bypass it.
+## 6) TypeScript design choices
 
----
+- strict mode for safe assumptions
+- `unknown`-first narrowing at trust boundaries
+- Express Request augmentation over repeated assertions
+- central env validation for fail-fast startup
 
-## 6) TypeScript-specific design choices used here
-
-- Strict mode catches unsafe assumptions at compile time.
-- `unknown` in `catch` blocks forces safe narrowing.
-- Request augmentation (`express.d.ts`) is preferred over repeated type assertions.
-- Central env validation turns runtime surprises into startup failures.
-
----
-
-## 7) Current maturity and next connections
-
-Current foundation is correct for scaling into:
-- `routes/` (route declarations)
-- `controllers/` (request orchestration)
-- `models/` (Mongoose schemas/types)
-
-Expected dependency direction:
+## 7) Dependency direction
 
 ```mermaid
 flowchart LR
@@ -191,11 +112,7 @@ flowchart LR
     Server --> Config
 ```
 
-Keep dependencies one-way where possible (avoid circular imports).
-
----
-
-## 8) Quick health checklist for this codebase
+## 8) Original checklist (preserved)
 
 - [ ] `env.ts` is the only place reading `process.env`
 - [ ] `db.ts` does not swallow startup failures
@@ -206,4 +123,40 @@ Keep dependencies one-way where possible (avoid circular imports).
 
 ---
 
-If you want, this file can be expanded with a per-file "line-by-line walkthrough" section as your project grows.
+## B) Recent updates (new)
+
+## Current run workflow
+
+- `npm run dev`: runs TypeScript directly with `tsx watch src/server.ts`
+- `npm run build`: compiles to `dist/`
+- `npm run typecheck`: type validation only (`--noEmit`)
+
+Important: `tsc -w` compiles continuously but does not run the server.
+
+## Current state from latest code
+
+- Auth route exists at `/api/contacts` and uses `protectToken`.
+- `auth_middleware.ts` uses a payload type guard before assigning `req.user`.
+- Error middleware is registered after routes in `app.ts`.
+- App startup still requires all env vars: `PORT`, `MONGODB_URI`, `JWT_SECRET`.
+- Type checking currently passes with `skipLibCheck: true`.
+
+## Current improvement targets
+
+- Keep unauthorized status usage fully consistent (constants vs raw `401`)
+- Avoid logging sensitive Mongo connection values in `db.ts`
+- Return `PORT` as `number` from `env.ts` after validation
+- Move route handler logic toward controllers as project grows
+
+---
+
+## Quick mental model
+
+Think in boundaries:
+- Config boundary: `env.ts`
+- Infrastructure boundary: `db.ts`
+- Security boundary: `auth_middleware.ts`
+- API boundary: `routes/*`
+- Error boundary: `errorhandler.ts`
+
+Strict TypeScript helps because each boundary converts untrusted input into trusted application state.

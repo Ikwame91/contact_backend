@@ -1,5 +1,6 @@
 import express, {Application , Request, Response} from 'express';
 import errorHandler from './middleware/errorhandler.js';
+import authRoutes from './routes/auth.routes.js';
 
 const app: Application = express();
 
@@ -11,5 +12,6 @@ app.get('/api/health', (req:Request, res: Response)=>{
         message:"Contact api logic is fully functional"
     })
 })
+app.use(authRoutes);
 app.use(errorHandler)
 export default app;

@@ -23,7 +23,7 @@ const protectToken = (
 ): void => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(401).json({
+    res.status(STATUS_CODES.UNAUTHORIZED).json({
       success: false,
       message: "Unauthorized, no token provided",
     });
