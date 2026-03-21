@@ -1,9 +1,8 @@
 import app from './app.js';
 import env from './config/env.js';
 import connectDb from  './config/db.js';
-import { start } from 'node:repl';
 
-const StartServer = async(): Promise<void> =>{
+const startServer = async(): Promise<void> =>{
     try {
         await connectDb();
 
@@ -17,4 +16,4 @@ app.listen(env.PORT,()=>{
         
     }}
 
-    StartServer();
+    startServer();

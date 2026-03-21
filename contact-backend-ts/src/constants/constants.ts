@@ -5,7 +5,7 @@ export const ERROR_MESSAGES ={
     SERVER_ERROR: "Server error",
     CONTACT_NOT_FOUND: "Contact not found",
     UNAUTHORIZED: "Unauthorized",
-    FORMERR: "Forbidden Access",
+    FORBIDDEN: "Forbidden Access",
 
 }
 

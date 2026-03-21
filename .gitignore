@@ -1,4 +1,7 @@
 /node_modules
+/contact-backend-ts/node_modules
+/contact-backend-ts/dist
+/contact-backend-ts/.env
 .env
 .github
 /analysis.md
